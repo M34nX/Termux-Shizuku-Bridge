@@ -10,7 +10,7 @@ android {
 
     defaultConfig {
         applicationId = "dev.m34nx.tsb"
-        minSdk = 23
+        minSdk = 24
         targetSdk = 35
         versionCode = 2
         versionName = "0.2.0"
