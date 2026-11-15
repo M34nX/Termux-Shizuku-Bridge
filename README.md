@@ -2,15 +2,25 @@
 
 <img src="assets/tsb-banner.svg" alt="Termux-Shizuku-Bridge — TSB" width="100%">
 
+<img src="assets/tsb-icon.svg" alt="TSB icon" width="84">
+
 # Termux-Shizuku-Bridge
 
 **Read-only diagnostics for the Termux → rish → Shizuku connection.**
+
+*Understand your bridge. Keep control local.*
 
 [![Version](https://img.shields.io/badge/version-0.2.0-168f78?style=flat-square)](pyproject.toml) [![Python](https://img.shields.io/badge/python-3.10%2B-3776ab?style=flat-square&logo=python&logoColor=white)](https://www.python.org/) [![Platform](https://img.shields.io/badge/platform-Android-3ddc84?style=flat-square&logo=android&logoColor=white)](https://www.android.com/) [![License](https://img.shields.io/badge/license-MIT-64748b?style=flat-square)](LICENSE)
 
 </div>
 
 ---
+
+## Brand assets
+
+- Project banner: [`assets/tsb-banner.svg`](assets/tsb-banner.svg)
+- Project icon: [`assets/tsb-icon.svg`](assets/tsb-icon.svg)
+- Social preview artwork source: [`assets/social-preview.svg`](assets/social-preview.svg)
 
 ## Overview
 
