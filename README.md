@@ -1,29 +1,54 @@
-# TSB — Termux Shizuku Bridge
+<div align="center">
 
-**A privacy-first diagnostic companion for Termux and Shizuku.**
+<img src="assets/tsb-banner.svg" alt="Termux-Shizuku-Bridge — TSB" width="100%">
 
-TSB (Termux Shizuku Bridge) explains which parts of the Termux → rish → Shizuku connection are working, identifies the remote execution identity, and produces sanitized support reports. It is a diagnostic tool, not a privilege manager.
+# Termux-Shizuku-Bridge
 
-## What makes TSB useful
+**Read-only diagnostics for the Termux → rish → Shizuku connection.**
 
-- **Connection Observatory:** checks Termux detection, rish discovery, companion DEX presence, and fixed read-only probes.
-- **Capability Fingerprint:** reports the remote UID and labels common identities accurately; Shizuku does not automatically mean root.
-- **Privacy-first Support Report:** removes local paths and custom application IDs by default.
-- **Offline by design:** no telemetry, automatic uploads, or network reporting.
+[![Version](https://img.shields.io/badge/version-0.2.0-168f78?style=flat-square)](pyproject.toml) [![Python](https://img.shields.io/badge/python-3.10%2B-3776ab?style=flat-square&logo=python&logoColor=white)](https://www.python.org/) [![Platform](https://img.shields.io/badge/platform-Android-3ddc84?style=flat-square&logo=android&logoColor=white)](https://www.android.com/) [![License](https://img.shields.io/badge/license-MIT-64748b?style=flat-square)](LICENSE)
 
-## Safety boundaries
+</div>
 
-TSB only invokes a small, hard-coded allowlist of read-only probes. It does not accept arbitrary shell commands, grant Shizuku permissions, change Android settings, install or disable apps, or modify system data. Every rish subprocess has a timeout.
+---
+
+## Overview
+
+**Termux-Shizuku-Bridge (TSB)** is a privacy-first diagnostic utility that helps you understand which parts of the Termux → rish → Shizuku connection are working. It identifies the remote execution identity and creates sanitized support reports.
+
+> TSB is an observability and troubleshooting tool—not a root tool, privilege manager, or Shizuku replacement.
+
+## Features
+
+| Component | What it does |
+|---|---|
+| **Connection Observatory** | Checks Termux detection, rish discovery, companion DEX presence, and fixed read-only probes. |
+| **Capability Fingerprint** | Reports the remote UID and identifies common execution identities without assuming Shizuku means root. |
+| **Privacy-first Reports** | Redacts local paths and custom application IDs by default; supports text and JSON. |
+| **Offline by Design** | No telemetry, automatic uploads, or network reporting. |
+
+## Safety and privacy
+
+- Runs only a small, hard-coded allowlist of read-only probes.
+- Does **not** accept arbitrary shell commands or evaluate user-provided commands.
+- Does **not** grant Shizuku permissions or change Android settings.
+- Does **not** install, disable, or modify apps or system data.
+- Applies a timeout to every rish subprocess.
+- Keeps diagnostic reports local; nothing is uploaded automatically.
 
 ## Requirements
 
-- Android with Termux and Python 3.10+
-- Shizuku installed, running, and explicitly authorized for Termux
-- The official `rish` helper and `rish_shizuku.dex` exported using Shizuku's terminal-app integration
+- Android device
+- [Termux](https://github.com/termux/termux-app)
+- Python 3.10 or newer
+- [Shizuku](https://github.com/RikkaApps/Shizuku), running and explicitly authorized for Termux
+- The official rish helper and rish_shizuku.dex exported through Shizuku's terminal-app integration
 
 See the [official rish documentation](https://github.com/RikkaApps/Shizuku-API/tree/master/rish).
 
-## Install in Termux
+## Installation
+
+In Termux:
 
 ```bash
 pkg install python git
@@ -32,25 +57,25 @@ cd Termux-Shizuku-Bridge
 python -m pip install --user .
 ```
 
-Or run from a source checkout without installing:
+To run directly from a source checkout without installing:
 
 ```bash
 python tsb.py doctor
 ```
 
-## Commands
+## Usage
 
-```text
-tsb doctor                 Run diagnostics and explain issues
-tsb status                 Show connection status
-tsb report                 Print a sanitized text report
-tsb report --json          Print a sanitized JSON report
-tsb report --output FILE   Save a report locally
-tsb report --include-paths Explicitly include local paths
-tsb version                Show version
+```bash
+tsb doctor                 # Diagnose the Termux–Shizuku bridge
+tsb status                 # Show connection status
+tsb report                 # Print a sanitized text report
+tsb report --json          # Print a sanitized JSON report
+tsb report --output FILE   # Save a report locally
+tsb report --include-paths # Explicitly include local paths
+tsb version                # Show version
 ```
 
-The `report` command never uploads data. Review a report before sharing it.
+Review a report before sharing it. Reports are not uploaded by TSB.
 
 ## Development
 
@@ -59,18 +84,26 @@ python -m pip install -e .
 python -m unittest discover -s tests -v
 ```
 
-CI runs the unit suite on Python 3.10–3.13. A real Android device with Shizuku is still required for end-to-end validation.
+The GitHub Actions workflow is configured for Python 3.10–3.13. A real Android device with a working Shizuku setup is required for end-to-end validation.
 
-## Project layout
+## Project structure
 
-- `src/tsb/`: modular application package
-- `tests/`: unit tests
-- `docs/`: architecture, security, troubleshooting
-- `.github/workflows/`: automated test workflow
+```text
+.
+├── src/tsb/              # Application package
+├── tests/                # Unit tests
+├── docs/                 # Architecture, security, troubleshooting
+├── .github/workflows/    # CI workflow
+├── assets/               # Project branding
+├── install.sh
+├── uninstall.sh
+├── pyproject.toml
+└── tsb.py                # Source-checkout launcher
+```
 
-## Status
+## Project status
 
-**0.2.0 redesign in progress.** Unit tests and real-device behavior must be verified before calling this release production-ready.
+**Version 0.2.0 — redesign in progress.** Unit tests and real-device behavior must be verified before describing this release as production-ready.
 
 ## License
 
