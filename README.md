@@ -156,6 +156,12 @@ See the detailed [Troubleshooting guide](docs/TROUBLESHOOTING.md).
 | tsb report --include-paths | Explicitly include local paths. |
 | tsb version | Show TSB version. |
 
+## Native Android app (TSB Mobile)
+
+A Kotlin + Jetpack Compose companion app is available in [android/](android/). The current MVP checks whether Termux and Shizuku are installed, checks Shizuku binder reachability, provides a setup checklist, and copies a local diagnostic summary.
+
+The mobile MVP does not yet inspect rish or its DEX companion and does not execute remote commands. It makes no network requests, requests no privileged Shizuku permission, and does not upload reports. See [TSB Mobile build instructions](android/README.md).
+
 ## Development and tests
 
 ~~~bash
