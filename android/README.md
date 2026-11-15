@@ -2,28 +2,45 @@
 
 Native Android companion app for Termux-Shizuku-Bridge, built with Kotlin and Jetpack Compose.
 
-## Current MVP
+## Features in 0.2.0
 
-- Detects whether the Termux and Shizuku apps are installed.
-- Checks whether the Shizuku binder is reachable using the official Shizuku API.
-- Provides a concise setup checklist.
-- Copies a local diagnostic report to the clipboard.
-- Makes no network requests and sends no telemetry.
+- English/Persian language switch; selection is saved locally.
+- Detects whether the Termux and Shizuku packages are installed.
+- Uses the official Shizuku API and ShizukuProvider to check Binder reachability.
+- Shows Android release, SDK level, manufacturer, and model.
+- Provides a concise setup checklist and shortcuts to open Termux or Shizuku.
+- Copies a local diagnostic report to the clipboard after user action.
 
-The MVP does **not** claim to verify rish, its companion DEX, remote UID, or remote command execution. Those checks remain in the Python TSB CLI until a separately reviewed native implementation is added.
+## Important scope limits
 
-## Build
+This MVP does **not** verify rish, the rish companion DEX, remote UID, or remote command execution. A reachable Shizuku Binder is not proof that the full Termux → rish → Shizuku bridge is ready.
 
-Requirements: Android Studio (or Android SDK), JDK 17, and Android SDK 35.
+The app does not request Shizuku's privileged permission, run shell commands, start a UserService, modify Android settings, or upload reports. It declares no INTERNET permission.
 
-From this directory:
+## Build requirements
 
-```bash
+- JDK 17
+- Android SDK Platform 35 and Build Tools 35.0.0
+- Android Gradle Plugin 8.7.3
+- Gradle 8.9
+- Minimum Android API 24
+
+Open the android/ directory in Android Studio or build from this directory:
+
+~~~bash
 gradle :app:assembleDebug
-```
+~~~
 
-The APK is generated at `app/build/outputs/apk/debug/app-debug.apk`.
+The debug APK is generated at:
 
-## Safety and privacy
+~~~text
+app/build/outputs/apk/debug/app-debug.apk
+~~~
 
-The app performs local, read-only checks. It does not request Shizuku privileged permission, execute shell commands, alter Android settings, start services, or upload reports.
+GitHub Actions runs the same debug build. When the build succeeds on the project beta branch, the workflow uploads the APK artifact and publishes a GitHub prerelease.
+
+## Install and test
+
+Install only an APK you have reviewed and trust. After installing, open Shizuku and start its service through the official setup instructions. TSB Mobile refreshes the local status when the app resumes or when you tap Refresh.
+
+Physical-device testing is required; CI only verifies that the Android project compiles and packages.
