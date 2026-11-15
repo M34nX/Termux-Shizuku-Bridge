@@ -5,3 +5,11 @@ build/
 dist/
 .venv/
 .pytest_cache/
+
+# Android / Gradle
+.gradle/
+**/build/
+local.properties
+.idea/
+*.iml
+.DS_Store
