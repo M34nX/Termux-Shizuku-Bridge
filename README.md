@@ -96,10 +96,10 @@ cd Termux-Shizuku-Bridge
 python -m pip install .
 ~~~
 
-If you want to run from the source folder without installing:
+If you want to run directly from a source checkout without installing:
 
 ~~~bash
-python tsb.py doctor
+PYTHONPATH=src python -m tsb doctor
 ~~~
 
 ### 5. Run diagnostics
