@@ -3,7 +3,9 @@ package dev.m34nx.tsb
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
+import android.content.Intent
 import android.content.pm.PackageManager
+import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -34,139 +36,293 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.runtime.CompositionLocalProvider
 import rikka.shizuku.Shizuku
 
 private const val SHIZUKU_PACKAGE = "moe.shizuku.privileged.api"
 private const val TERMUX_PACKAGE = "com.termux"
+private const val PREFS_NAME = "tsb_mobile_preferences"
+private const val PREF_LANGUAGE = "persian"
+
+private data class DeviceSnapshot(
+    val termuxInstalled: Boolean,
+    val shizukuInstalled: Boolean,
+    val binderReachable: Boolean,
+    val androidRelease: String,
+    val sdk: Int,
+    val manufacturer: String,
+    val model: String
+)
 
 class MainActivity : ComponentActivity() {
-    private fun isInstalled(packageName: String): Boolean =
-        try {
-            packageManager.getPackageInfo(packageName, 0)
-            true
-        } catch (_: PackageManager.NameNotFoundException) {
-            false
-        }
-
-    private fun refreshSnapshot() = Snapshot(
-        termuxInstalled = isInstalled(TERMUX_PACKAGE),
-        shizukuInstalled = isInstalled(SHIZUKU_PACKAGE),
-        shizukuRunning = Shizuku.pingBinder()
+    private val snapshotState = mutableStateOf(
+        DeviceSnapshot(false, false, false, Build.VERSION.RELEASE ?: "unknown",
+            Build.VERSION.SDK_INT, Build.MANUFACTURER ?: "unknown", Build.MODEL ?: "unknown")
     )
+
+    private fun packageIsInstalled(packageName: String): Boolean = try {
+        val info = if (Build.VERSION.SDK_INT >= 33) {
+            packageManager.getPackageInfo(packageName, PackageManager.PackageInfoFlags.of(0))
+        } else {
+            @Suppress("DEPRECATION")
+            packageManager.getPackageInfo(packageName, 0)
+        }
+        info.packageName.isNotBlank()
+    } catch (_: PackageManager.NameNotFoundException) {
+        false
+    }
+
+    private fun collectSnapshot(): DeviceSnapshot {
+        val termux = packageIsInstalled(TERMUX_PACKAGE)
+        val shizuku = packageIsInstalled(SHIZUKU_PACKAGE)
+        val binder = if (shizuku) runCatching { Shizuku.pingBinder() }.getOrDefault(false) else false
+        return DeviceSnapshot(
+            termuxInstalled = termux,
+            shizukuInstalled = shizuku,
+            binderReachable = binder,
+            androidRelease = Build.VERSION.RELEASE ?: "unknown",
+            sdk = Build.VERSION.SDK_INT,
+            manufacturer = Build.MANUFACTURER ?: "unknown",
+            model = Build.MODEL ?: "unknown"
+        )
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        snapshotState.value = collectSnapshot()
         setContent {
-            var snapshot by remember { mutableStateOf(refreshSnapshot()) }
+            var persian by remember {
+                mutableStateOf(getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+                    .getBoolean(PREF_LANGUAGE, false))
+            }
             TsbTheme {
-                Dashboard(snapshot, { snapshot = refreshSnapshot() },
-                    { openPackage(SHIZUKU_PACKAGE) }, { copyReport(snapshot) })
+                Dashboard(
+                    snapshot = snapshotState.value,
+                    persian = persian,
+                    onRefresh = { snapshotState.value = collectSnapshot() },
+                    onToggleLanguage = {
+                        persian = !persian
+                        getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+                            .edit().putBoolean(PREF_LANGUAGE, persian).apply()
+                    },
+                    onOpenShizuku = { openPackage(SHIZUKU_PACKAGE) },
+                    onOpenTermux = { openPackage(TERMUX_PACKAGE) },
+                    onCopyReport = { copyReport(snapshotState.value) }
+                )
             }
         }
     }
 
-    private fun openPackage(packageName: String) {
-        packageManager.getLaunchIntentForPackage(packageName)?.let(::startActivity)
+    override fun onResume() {
+        super.onResume()
+        snapshotState.value = collectSnapshot()
     }
 
-    private fun copyReport(snapshot: Snapshot) {
+    private fun openPackage(packageName: String) {
+        val launchIntent: Intent? = packageManager.getLaunchIntentForPackage(packageName)
+        launchIntent?.let(::startActivity)
+    }
+
+    private fun copyReport(snapshot: DeviceSnapshot) {
         val report = """
-            TSB Mobile 0.1.0
+            TSB Mobile 0.2.0
+            Android: ${snapshot.androidRelease} (API ${snapshot.sdk})
+            Device: ${snapshot.manufacturer} ${snapshot.model}
             Termux installed: ${snapshot.termuxInstalled}
             Shizuku installed: ${snapshot.shizukuInstalled}
-            Shizuku binder reachable: ${snapshot.shizukuRunning}
-            Note: Checks app presence and Shizuku binder reachability only.
+            Shizuku binder reachable: ${snapshot.binderReachable}
+            Scope: local package visibility and Shizuku binder reachability only.
+            Not tested here: rish, companion DEX, remote UID, remote command execution.
         """.trimIndent()
         val clipboard = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
         clipboard.setPrimaryClip(ClipData.newPlainText("TSB diagnostic report", report))
     }
 }
 
-private data class Snapshot(val termuxInstalled: Boolean, val shizukuInstalled: Boolean, val shizukuRunning: Boolean)
-
 @Composable
 private fun TsbTheme(content: @Composable () -> Unit) {
     MaterialTheme(
         colorScheme = darkColorScheme(
-            primary = Color(0xFF62E6C1), secondary = Color(0xFF8CB8FF),
-            background = Color(0xFF0A1015), surface = Color(0xFF121C24)
-        ), content = content
+            primary = Color(0xFF65E7C5),
+            secondary = Color(0xFF9BBEFF),
+            background = Color(0xFF081117),
+            surface = Color(0xFF14222B),
+            surfaceVariant = Color(0xFF1B2D37)
+        ),
+        content = content
     )
 }
 
+private fun tr(persian: Boolean, english: String, farsi: String): String =
+    if (persian) farsi else english
+
 @Composable
 private fun Dashboard(
-    snapshot: Snapshot, onRefresh: () -> Unit,
-    onOpenShizuku: () -> Unit, onCopyReport: () -> Unit
+    snapshot: DeviceSnapshot,
+    persian: Boolean,
+    onRefresh: () -> Unit,
+    onToggleLanguage: () -> Unit,
+    onOpenShizuku: () -> Unit,
+    onOpenTermux: () -> Unit,
+    onCopyReport: () -> Unit
 ) {
-    Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
-        Column(
-            Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(20.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
-            Text("TSB / MOBILE", color = MaterialTheme.colorScheme.primary, fontSize = 13.sp, fontWeight = FontWeight.Bold)
-            Text("Connection\nobservatory", fontSize = 32.sp, lineHeight = 36.sp, fontWeight = FontWeight.Bold)
-            Text("A local, privacy-first overview of your Termux and Shizuku setup.", color = Color(0xFFB2C0CA))
-            Card(colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface), shape = RoundedCornerShape(20.dp)) {
-                Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text("SYSTEM STATUS", fontWeight = FontWeight.Bold, color = Color(0xFF9EAFBC))
-                        Spacer(Modifier.weight(1f))
-                        Text(if (snapshot.shizukuRunning) "CONNECTED" else "CHECK NEEDED",
-                            color = if (snapshot.shizukuRunning) MaterialTheme.colorScheme.primary else Color(0xFFFFC36B),
-                            fontWeight = FontWeight.Bold, fontSize = 12.sp)
+    CompositionLocalProvider(
+        LocalLayoutDirection provides if (persian) LayoutDirection.Rtl else LayoutDirection.Ltr
+    ) {
+        Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
+            Column(
+                modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(20.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text("TSB  /  MOBILE", color = MaterialTheme.colorScheme.primary,
+                            fontSize = 13.sp, fontWeight = FontWeight.Bold)
+                        Text(tr(persian, "CONNECTION OBSERVATORY", "مرکز پایش اتصال"),
+                            color = Color(0xFF91A7B4), fontSize = 11.sp, fontWeight = FontWeight.SemiBold)
                     }
-                    StatusRow("Termux app", snapshot.termuxInstalled, "App presence only")
-                    StatusRow("Shizuku app", snapshot.shizukuInstalled, "App presence only")
-                    StatusRow("Shizuku service", snapshot.shizukuRunning, "Binder reachability")
-                    Text("This screen does not verify rish, its DEX companion, or remote command execution.",
-                        color = Color(0xFF9EAFBC), fontSize = 12.sp)
+                    OutlinedButton(onClick = onToggleLanguage) {
+                        Text(if (persian) "English" else "فارسی")
+                    }
                 }
-            }
-            Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                Button(onClick = onRefresh, modifier = Modifier.weight(1f)) { Text("Refresh") }
-                OutlinedButton(onClick = onOpenShizuku, modifier = Modifier.weight(1f)) { Text("Open Shizuku") }
-            }
-            Text("SETUP CHECKLIST", fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
-            InfoCard("01  Install Termux", "Install Termux and its plugins from the same trusted distribution source.")
-            InfoCard("02  Start Shizuku", "Use Shizuku's official setup flow. Wireless debugging setup is available on Android 11+.")
-            InfoCard("03  Authorize Termux", "Grant Termux access from Shizuku's application authorization screen.")
-            InfoCard("04  Export rish", "Use Shizuku's terminal-app integration to export rish and rish_shizuku.dex.")
-            Card(colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)) {
-                Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Text("LOCAL DIAGNOSTIC REPORT", fontWeight = FontWeight.Bold)
-                    Text("Copies app-presence and binder-status checks only. No data is uploaded.", color = Color(0xFF9EAFBC), fontSize = 13.sp)
-                    OutlinedButton(onClick = onCopyReport) { Text("Copy report") }
+
+                Text(
+                    tr(persian, "Your bridge.\nClearly understood.", "وضعیت اتصال\nبا جزئیات روشن"),
+                    fontSize = 30.sp, lineHeight = 36.sp, fontWeight = FontWeight.Bold,
+                    color = Color(0xFFF0F6F8)
+                )
+                Text(
+                    tr(persian,
+                        "A local overview of Termux, Shizuku and your Android environment.",
+                        "نمایی محلی از وضعیت ترموکس، شیزوکو و محیط اندروید."),
+                    color = Color(0xFFB2C2CB), fontSize = 14.sp
+                )
+
+                Card(
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                    shape = RoundedCornerShape(22.dp)
+                ) {
+                    Column(Modifier.fillMaxWidth().padding(18.dp),
+                        verticalArrangement = Arrangement.spacedBy(15.dp)) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Text(tr(persian, "CONNECTION STATUS", "وضعیت اتصال"),
+                                fontWeight = FontWeight.Bold, color = Color(0xFFA9BBC5))
+                            Spacer(Modifier.weight(1f))
+                            Text(
+                                if (snapshot.binderReachable)
+                                    tr(persian, "BINDER ONLINE", "بایندر فعال")
+                                else tr(persian, "ACTION NEEDED", "نیازمند بررسی"),
+                                color = if (snapshot.binderReachable) MaterialTheme.colorScheme.primary
+                                    else Color(0xFFFFC56F),
+                                fontWeight = FontWeight.Bold, fontSize = 11.sp
+                            )
+                        }
+                        StatusRow(tr(persian, "Termux app", "برنامهٔ ترموکس"),
+                            snapshot.termuxInstalled, persian)
+                        StatusRow(tr(persian, "Shizuku app", "برنامهٔ شیزوکو"),
+                            snapshot.shizukuInstalled, persian)
+                        StatusRow(tr(persian, "Shizuku Binder", "بایندر شیزوکو"),
+                            snapshot.binderReachable, persian)
+                        Text(
+                            tr(persian,
+                                "Important: Binder reachability does not prove that rish or remote commands work.",
+                                "توجه: دسترسی به بایندر به‌تنهایی کارکرد rish یا اجرای فرمان از راه دور را اثبات نمی‌کند."),
+                            color = Color(0xFF9EAFBC), fontSize = 12.sp
+                        )
+                    }
                 }
+
+                Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                    Button(onClick = onRefresh, modifier = Modifier.weight(1f)) {
+                        Text(tr(persian, "Refresh", "به‌روزرسانی"))
+                    }
+                    OutlinedButton(onClick = onOpenShizuku, modifier = Modifier.weight(1f)) {
+                        Text(tr(persian, "Open Shizuku", "بازکردن شیزوکو"))
+                    }
+                }
+                OutlinedButton(onClick = onOpenTermux, modifier = Modifier.fillMaxWidth()) {
+                    Text(tr(persian, "Open Termux", "بازکردن ترموکس"))
+                }
+
+                SectionTitle(tr(persian, "DEVICE OVERVIEW", "اطلاعات دستگاه"))
+                InfoCard(
+                    tr(persian, "Android environment", "محیط اندروید"),
+                    "${snapshot.manufacturer} ${snapshot.model}\n" +
+                        "Android ${snapshot.androidRelease}  •  API ${snapshot.sdk}"
+                )
+
+                SectionTitle(tr(persian, "QUICK SETUP", "راهنمای راه‌اندازی"))
+                InfoCard(tr(persian, "01  Install both apps", "۰۱  نصب هر دو برنامه"),
+                    tr(persian, "Install Termux and Shizuku. Keep Termux and its plugins from the same distribution source.",
+                        "ترموکس و شیزوکو را نصب کنید. ترموکس و افزونه‌های آن باید از یک منبع انتشار باشند."))
+                InfoCard(tr(persian, "02  Start Shizuku", "۰۲  راه‌اندازی شیزوکو"),
+                    tr(persian, "Follow Shizuku's official setup guide. Wireless debugging is supported on Android 11+.",
+                        "از راهنمای رسمی شیزوکو پیروی کنید. راه‌اندازی با عیب‌یابی بی‌سیم در اندروید ۱۱ به بالا پشتیبانی می‌شود."))
+                InfoCard(tr(persian, "03  Authorize Termux", "۰۳  مجازکردن ترموکس"),
+                    tr(persian, "Authorize Termux in Shizuku's application list. TSB never grants this permission for you.",
+                        "در فهرست برنامه‌های شیزوکو به ترموکس مجوز بدهید. TSB این مجوز را خودکار اعطا نمی‌کند."))
+                InfoCard(tr(persian, "04  Export rish", "۰۴  خروجی‌گرفتن از rish"),
+                    tr(persian, "Export the official rish helper and rish_shizuku.dex using Shizuku's terminal integration.",
+                        "ابزار rish و فایل rish_shizuku.dex را از طریق یکپارچه‌سازی ترمینال شیزوکو دریافت کنید."))
+
+                Card(colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                    shape = RoundedCornerShape(20.dp)) {
+                    Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(9.dp)) {
+                        Text(tr(persian, "PRIVATE DIAGNOSTIC REPORT", "گزارش تشخیصی خصوصی"),
+                            fontWeight = FontWeight.Bold)
+                        Text(tr(persian,
+                            "Copies device and app-status data to your clipboard. Nothing is uploaded.",
+                            "اطلاعات دستگاه و وضعیت برنامه‌ها را در حافظهٔ موقت کپی می‌کند؛ چیزی بارگذاری نمی‌شود."),
+                            color = Color(0xFF9EAFBC), fontSize = 13.sp)
+                        Button(onClick = onCopyReport) {
+                            Text(tr(persian, "Copy report", "کپی گزارش"))
+                        }
+                    }
+                }
+
+                Text(
+                    tr(persian,
+                        "TSB Mobile 0.2.0 • Local-only • No telemetry",
+                        "TSB Mobile 0.2.0 • فقط محلی • بدون تله‌متری"),
+                    color = Color(0xFF718693), fontSize = 11.sp
+                )
             }
-            Text("TSB Mobile 0.1.0 • No telemetry • Read-only", color = Color(0xFF728391), fontSize = 11.sp)
         }
     }
 }
 
 @Composable
-private fun StatusRow(label: String, ok: Boolean, detail: String) {
+private fun SectionTitle(title: String) {
+    Text(title, color = MaterialTheme.colorScheme.primary, fontSize = 12.sp,
+        fontWeight = FontWeight.Bold)
+}
+
+@Composable
+private fun StatusRow(label: String, available: Boolean, persian: Boolean) {
     Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
-        Column(Modifier.weight(1f)) {
-            Text(label, fontWeight = FontWeight.SemiBold)
-            Text(detail, color = Color(0xFF8FA0AD), fontSize = 12.sp)
-        }
-        Text(if (ok) "AVAILABLE" else "NOT FOUND",
-            color = if (ok) Color(0xFF62E6C1) else Color(0xFFFFC36B),
-            fontSize = 11.sp, fontWeight = FontWeight.Bold)
+        Text(label, modifier = Modifier.weight(1f), fontWeight = FontWeight.SemiBold)
+        Text(
+            if (available) tr(persian, "AVAILABLE", "در دسترس")
+            else tr(persian, "NOT DETECTED", "شناسایی نشد"),
+            color = if (available) Color(0xFF65E7C5) else Color(0xFFFFC56F),
+            fontSize = 10.sp, fontWeight = FontWeight.Bold
+        )
     }
 }
 
 @Composable
 private fun InfoCard(title: String, body: String) {
-    Card(colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)) {
-        Column(Modifier.padding(16.dp)) {
+    Card(colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        shape = RoundedCornerShape(16.dp)) {
+        Column(Modifier.fillMaxWidth().padding(16.dp)) {
             Text(title, fontWeight = FontWeight.Bold)
-            Spacer(Modifier.height(5.dp))
-            Text(body, color = Color(0xFF9EAFBC), fontSize = 13.sp)
+            Spacer(Modifier.height(6.dp))
+            Text(body, color = Color(0xFFA9BBC5), fontSize = 13.sp, lineHeight = 19.sp)
         }
     }
 }
