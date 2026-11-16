@@ -97,3 +97,41 @@ jobs:
               --target "$GITHUB_SHA" \
               --repo "$GITHUB_REPOSITORY"
           fi
+
+      - name: Publish TSB 0.2.1 release
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          TAG="v0.2.1"
+          APK="android/app/build/outputs/apk/debug/app-debug.apk"
+          cat > release-notes-0.2.1.md <<'EOF'
+          ## TSB 0.2.1 — Privacy and CI maintenance
+
+          - Expanded default path redaction for Android app data, shared storage, Linux home, and macOS user paths, including nested report text.
+          - Kept explicit `--include-paths` behavior: local paths are included only when explicitly requested.
+          - Added regression coverage for path redaction and the fixed-command allowlist.
+          - Updated CLI and Android app versions to 0.2.1 (Android versionCode 3).
+          - Enabled Android build CI on pushes to `main` and extended the Python CI matrix to 3.14.
+          - Clarified that the mobile status reports Binder reachability, not full bridge availability.
+
+          ## فارسی
+
+          - پالایش مسیرهای خصوصی اندروید، حافظهٔ اشتراکی، پوشهٔ خانگی لینوکس و پوشهٔ کاربر macOS در گزارش‌ها گسترش یافت.
+          - گزینهٔ `--include-paths` فقط با انتخاب صریح کاربر مسیرها را حفظ می‌کند.
+          - تست‌های بازگشت برای پالایش مسیر و محدودماندن فرمان‌ها به فهرست ثابت اضافه شد.
+          - نسخهٔ CLI و اپ اندروید به ۰٫۲٫۱ ارتقا یافت و versionCode اندروید به ۳ رسید.
+          - ساخت اندروید روی push به شاخهٔ `main` فعال شد و ماتریس پایتون تا ۳٫۱۴ گسترش یافت.
+          - وضعیت موبایل فقط دسترسی Binder را گزارش می‌کند، نه آنلاین‌بودن کامل پل.
+
+          **APK note:** The attached Android APK is a debug build, not a production-signed release.
+          EOF
+          if gh release view "$TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            gh release upload "$TAG" "$APK" --clobber --repo "$GITHUB_REPOSITORY"
+          else
+            gh release create "$TAG" "$APK" \
+              --title "TSB 0.2.1" \
+              --notes-file release-notes-0.2.1.md \
+              --target "$GITHUB_SHA" \
+              --repo "$GITHUB_REPOSITORY"
+          fi
