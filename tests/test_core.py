@@ -99,7 +99,7 @@ class CoreTests(unittest.TestCase):
         run.assert_not_called()
 
     def test_version(self):
-        self.assertRegex(VERSION, r"^d+.d+.d+$")
+        self.assertRegex(VERSION, r"^[0-9]+[.][0-9]+[.][0-9]+$")
         self.assertEqual(VERSION, "0.2.1")
 
 
