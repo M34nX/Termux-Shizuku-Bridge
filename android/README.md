@@ -2,7 +2,7 @@
 
 Native Android companion app for Termux-Shizuku-Bridge, built with Kotlin and Jetpack Compose.
 
-## Features in 0.2.0
+## Features in 0.2.1
 
 - English/Persian language switch; selection is saved locally.
 - Detects whether the Termux and Shizuku packages are installed.
