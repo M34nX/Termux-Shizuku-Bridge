@@ -130,7 +130,7 @@ class MainActivity : ComponentActivity() {
 
     private fun copyReport(snapshot: DeviceSnapshot) {
         val report = """
-            TSB Mobile 0.2.0
+            TSB Mobile 0.2.1
             Android: ${snapshot.androidRelease} (API ${snapshot.sdk})
             Device: ${snapshot.manufacturer} ${snapshot.model}
             Termux installed: ${snapshot.termuxInstalled}
@@ -215,7 +215,7 @@ private fun Dashboard(
                             Spacer(Modifier.weight(1f))
                             Text(
                                 if (snapshot.binderReachable)
-                                    tr(persian, "BINDER ONLINE", "بایندر فعال")
+                                    tr(persian, "BINDER REACHABLE", "بایندر در دسترس است")
                                 else tr(persian, "ACTION NEEDED", "نیازمند بررسی"),
                                 color = if (snapshot.binderReachable) MaterialTheme.colorScheme.primary
                                     else Color(0xFFFFC56F),
@@ -287,8 +287,8 @@ private fun Dashboard(
 
                 Text(
                     tr(persian,
-                        "TSB Mobile 0.2.0 • Local-only • No telemetry",
-                        "TSB Mobile 0.2.0 • فقط محلی • بدون تله‌متری"),
+                        "TSB Mobile 0.2.1 • Local-only • No telemetry",
+                        "TSB Mobile 0.2.1 • فقط محلی • بدون تله‌متری"),
                     color = Color(0xFF718693), fontSize = 11.sp
                 )
             }
