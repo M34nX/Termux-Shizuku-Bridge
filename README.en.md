@@ -99,7 +99,7 @@ A debug APK is not a Play Store release and is not production-signed. Review the
 
 ## Project status
 
-TSB CLI v0.2.0 and TSB Mobile v0.2.0-beta are under active development. Python CI and Android build CI are tracked separately. Physical-device validation is still required; Binder reachability is not proof that the complete rish bridge works.
+TSB CLI and TSB Mobile are at version 0.2.1. Python CI and Android build CI run separately. The Android APK remains a debug build, not a production-signed release. Physical-device validation is still required; Binder reachability is not proof that the complete rish bridge works.
 
 ## License
 
