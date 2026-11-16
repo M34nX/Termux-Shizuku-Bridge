@@ -1,0 +1,23 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "tsb-termux-shizuku-bridge"
+version = "0.2.0"
+description = "Privacy-first, read-only diagnostics for Termux and Shizuku"
+readme = "README.md"
+requires-python = ">=3.10"
+license = {file = "LICENSE"}
+authors = [{name = "M34nX"}]
+keywords = ["termux", "shizuku", "android", "diagnostics"]
+classifiers = ["Programming Language :: Python :: 3", "Operating System :: Android"]
+
+[project.scripts]
+tsb = "tsb.cli:main"
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]

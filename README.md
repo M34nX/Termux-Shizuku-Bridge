@@ -2,44 +2,58 @@
 
 <img src="assets/tsb-banner.svg" alt="Termux-Shizuku-Bridge" width="100%">
 
-<img src="assets/tsb-icon.svg" alt="TSB project icon" width="88">
-
 # Termux-Shizuku-Bridge
 
-**Read-only diagnostics for the Termux → rish → Shizuku connection.**
+**تشخیص امن و محلی ارتباط Termux، rish و Shizuku | Privacy-first diagnostics**
 
-*Understand your bridge. Keep control local.*
+[English](README.en.md) · [فارسی](README.fa.md)
 
-[![Python](https://img.shields.io/badge/python-3.10%2B-3776ab?style=for-the-badge&logo=python&logoColor=white)](https://www.python.org/)
-[![Android](https://img.shields.io/badge/platform-Android-3ddc84?style=for-the-badge&logo=android&logoColor=white)](https://www.android.com/)
-[![License](https://img.shields.io/badge/license-MIT-64748b?style=for-the-badge)](LICENSE)
+[![Python](https://img.shields.io/badge/Python-3.10%2B-3776ab?style=flat-square&logo=python)](https://python.org/)
+[![Android](https://img.shields.io/badge/Android-Native-3ddc84?style=flat-square&logo=android)](https://android.com/)
+[![License](https://img.shields.io/badge/License-MIT-64748b?style=flat-square)](LICENSE)
 
 </div>
 
 ---
 
-## About
+## فارسی
 
-**Termux-Shizuku-Bridge (TSB)** is a privacy-first project focused on helping users understand the connection between Termux, rish, and Shizuku.
+**TSB (Termux-Shizuku-Bridge)** مجموعه‌ای متن‌باز برای بررسی محلی محیط Termux و ارتباط آن با Shizuku از طریق ابزار رسمی rish است.
 
-> TSB is a diagnostic utility—not a root tool, permission manager, or replacement for Shizuku.
+### اجزای پروژه
+- **TSB CLI:** ابزار پایتونی برای بررسی Termux، rish، فایل DEX همراه و probeهای ثابت و فقط‌خواندنی.
+- **TSB Mobile:** اپلیکیشن بومی اندروید با Kotlin و Jetpack Compose؛ نمایش وضعیت نصب Termux و Shizuku، دسترسی Binder، اطلاعات دستگاه، راهنمای راه‌اندازی و گزارش محلی.
+- **مستندات دو‌زبانه:** راهنماهای فارسی و انگلیسی.
 
-## Project principles
+اپ موبایل در نسخهٔ فعلی وجود rish و اجرای فرمان از راه دور را تأیید نمی‌کند؛ این موارد همچنان از طریق TSB CLI بررسی می‌شوند.
 
-- **Read-only diagnostics:** inspect connection status without changing Android settings.
-- **Privacy-first:** keep reports local and avoid telemetry.
-- **Least privilege:** do not assume Shizuku means root access.
-- **Transparency:** document checks, limitations, and expected behavior.
+## English
 
-## Project status
+**TSB (Termux-Shizuku-Bridge)** is an open-source, privacy-first toolkit for inspecting the local Termux environment and its Shizuku connection through the official rish helper.
 
-The main branch currently contains the project landing page and visual identity. The v0.2.0 implementation is being reviewed separately in [Pull Request #1](https://github.com/M34nX/Termux-Shizuku-Bridge/pull/1). Tests and real-device validation must be completed before treating that redesign as a verified release.
+### Project components
+- **TSB CLI:** Python diagnostics for Termux, rish, its companion DEX, and fixed read-only probes.
+- **TSB Mobile:** A native Kotlin and Jetpack Compose Android companion. It displays Termux/Shizuku installation status, Shizuku Binder reachability, device details, setup guidance, and a local diagnostic report.
+- **Bilingual documentation:** English and Persian guides.
 
-## Visual identity
+The current mobile MVP does not verify rish or remote command execution; use TSB CLI for those checks.
 
-- [Project banner](assets/tsb-banner.svg)
-- [TSB icon](assets/tsb-icon.svg)
-- [Social preview artwork source](assets/social-preview.svg)
+## شروع سریع / Quick links
+
+- [English guide](README.en.md)
+- [راهنمای فارسی](README.fa.md)
+- [Android app / اپ اندروید](android/README.md)
+- [Android app فارسی](android/README.fa.md)
+- [Documentation / مستندات](docs/)
+- [Security / امنیت](docs/SECURITY.md)
+- [Compatibility / سازگاری](docs/COMPATIBILITY.md)
+- [GitHub Actions](../../actions)
+
+## Project status / وضعیت پروژه
+
+The Android app is an early beta. CI builds are required before distributing an APK, and physical-device testing is still needed. The mobile app is read-only and makes no network requests or telemetry uploads.
+
+اپ اندروید هنوز نسخهٔ بتا است. پیش از انتشار فایل نصب باید ساخت CI موفق باشد و آزمایش روی دستگاه واقعی انجام شود. اپ فعلی فقط وضعیت‌ها را می‌خواند و داده‌ای به سرور ارسال نمی‌کند.
 
 ## License
 

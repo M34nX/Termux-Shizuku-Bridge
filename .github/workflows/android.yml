@@ -1,0 +1,98 @@
+name: Android app build and beta release
+on:
+  push:
+    branches:
+      - redesign/v0.2.0
+    paths:
+      - "android/**"
+      - ".github/workflows/android.yml"
+  pull_request:
+    branches:
+      - main
+    paths:
+      - "android/**"
+      - ".github/workflows/android.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  debug-apk:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    env:
+      ANDROID_HOME: /usr/local/lib/android/sdk
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: "8.9"
+
+      - name: Install Android SDK packages
+        run: |
+          "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --install "platforms;android-35" "build-tools;35.0.0"
+
+      - name: Assemble debug APK
+        working-directory: android
+        run: gradle :app:assembleDebug
+
+      - name: Upload debug APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: tsb-mobile-debug
+          path: android/app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: error
+          retention-days: 90
+
+      - name: Prepare bilingual release notes
+        if: github.event_name == 'push' && github.ref == 'refs/heads/redesign/v0.2.0'
+        run: |
+          cat > release-notes.md <<'EOF'
+          ## English
+
+          TSB Mobile 0.2.0-beta.1 is an early native Android companion for Termux-Shizuku-Bridge.
+
+          - English and Persian interface
+          - Termux and Shizuku package detection
+          - Shizuku Binder reachability check
+          - Android device details, setup checklist, and local clipboard report
+
+          **Limitations:** this beta does not verify rish, its companion DEX, remote UID, or remote command execution. Binder reachability is not end-to-end bridge verification. This is a debug APK, not a production-signed Play Store release. Physical-device testing is still required.
+
+          ## فارسی
+
+          نسخهٔ ۰٫۲٫۰ بتا از TSB Mobile یک اپلیکیشن بومی و آزمایشی برای پروژهٔ Termux-Shizuku-Bridge است.
+
+          - رابط فارسی و انگلیسی
+          - تشخیص نصب بودن Termux و Shizuku
+          - بررسی دسترسی Binder شیزوکو
+          - نمایش اطلاعات دستگاه، راهنمای راه‌اندازی و گزارش محلی
+
+          **محدودیت‌ها:** این نسخه وجود rish و فایل DEX همراه، UID راه‌دور یا اجرای فرمان از راه دور را بررسی نمی‌کند. دسترسی Binder به‌تنهایی سلامت کامل پل را اثبات نمی‌کند. این APK آزمایشی است و نسخهٔ امضاشدهٔ تولیدی یا Play Store نیست. آزمایش روی دستگاه واقعی همچنان لازم است.
+          EOF
+
+      - name: Publish GitHub beta release
+        if: github.event_name == 'push' && github.ref == 'refs/heads/redesign/v0.2.0'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          TAG="tsb-mobile-v0.2.0-beta.1"
+          APK="android/app/build/outputs/apk/debug/app-debug.apk"
+          TITLE="TSB Mobile 0.2.0-beta.1"
+          if gh release view "$TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            gh release upload "$TAG" "$APK" --clobber --repo "$GITHUB_REPOSITORY"
+          else
+            gh release create "$TAG" "$APK" \
+              --title "$TITLE" \
+              --notes-file release-notes.md \
+              --prerelease \
+              --target "$GITHUB_SHA" \
+              --repo "$GITHUB_REPOSITORY"
+          fi
