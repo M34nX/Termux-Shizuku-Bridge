@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "tsb-termux-shizuku-bridge"
-version = "0.2.0"
+version = "0.2.1"
 description = "Privacy-first, read-only diagnostics for Termux and Shizuku"
 readme = "README.md"
 requires-python = ">=3.10"
