@@ -1,5 +1,23 @@
 # Changelog
 
+## TSB 0.2.1 — Privacy and CI maintenance (2026-11-16)
+- Expanded default path redaction to common Android app-data, shared-storage, Linux home, and macOS user paths, including nested report text.
+- Kept explicit `--include-paths` behavior: local paths are included only when the user opts in.
+- Added regression coverage for path redaction and the fixed-command allowlist.
+- Bumped CLI and Android app versions to 0.2.1; Android versionCode is now 3.
+- Enabled Android build CI on pushes to `main` and extended the Python CI matrix to 3.14.
+- Clarified the mobile status label to say Binder is reachable, not that the full bridge is online.
+
+## یادداشت تغییرات
+
+### TSB 0.2.1 — بهبود حریم خصوصی و CI
+- پالایش مسیرهای خصوصی اندروید، حافظهٔ اشتراکی، پوشهٔ خانگی لینوکس و پوشهٔ کاربر macOS در گزارش‌ها گسترش یافت.
+- گزینهٔ `--include-paths` فقط با انتخاب صریح کاربر مسیرها را حفظ می‌کند.
+- تست‌های بازگشت برای پالایش مسیر و محدودماندن فرمان‌ها به فهرست ثابت اضافه شد.
+- نسخهٔ CLI و اپ اندروید به ۰٫۲٫۱ ارتقا یافت و versionCode اندروید به ۳ رسید.
+- ساخت اندروید روی push به شاخهٔ `main` نیز اجرا می‌شود و ماتریس پایتون تا ۳٫۱۴ گسترش یافت.
+- برچسب وضعیت موبایل دقیق‌تر شد: فقط دسترسی Binder را نشان می‌دهد، نه آنلاین‌بودن کل پل.
+
 ## TSB Mobile 0.2.0-beta.1 — Native Android companion
 - Added a Kotlin and Jetpack Compose Android application.
 - Added a Persian/English in-app language switch with a locally saved preference.
