@@ -51,9 +51,9 @@ The current mobile MVP does not verify rish or remote command execution; use TSB
 
 ## Project status / وضعیت پروژه
 
-The Android app is an early beta. CI builds are required before distributing an APK, and physical-device testing is still needed. The mobile app is read-only and makes no network requests or telemetry uploads.
+TSB CLI and TSB Mobile are at version 0.2.1. The Android app remains an early beta; CI verifies builds, but physical-device testing is still required. The mobile app is read-only and makes no network requests or telemetry uploads.
 
-اپ اندروید هنوز نسخهٔ بتا است. پیش از انتشار فایل نصب باید ساخت CI موفق باشد و آزمایش روی دستگاه واقعی انجام شود. اپ فعلی فقط وضعیت‌ها را می‌خواند و داده‌ای به سرور ارسال نمی‌کند.
+TSB CLI و TSB Mobile در نسخهٔ ۰٫۲٫۱ هستند. اپ اندروید همچنان بتاست؛ CI ساخت را بررسی می‌کند، اما آزمایش روی دستگاه واقعی لازم است. اپ فعلی فقط وضعیت‌ها را می‌خواند و داده‌ای به سرور ارسال نمی‌کند.
 
 ## License
 
