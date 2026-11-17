@@ -4,9 +4,7 @@
 
 # Termux-Shizuku-Bridge
 
-**تشخیص امن و محلی ارتباط Termux، rish و Shizuku | Privacy-first diagnostics**
-
-[English](README.en.md) · [فارسی](README.fa.md)
+**Privacy-first diagnostics for the Termux → rish → Shizuku connection.**
 
 [![Python](https://img.shields.io/badge/Python-3.10%2B-3776ab?style=flat-square&logo=python)](https://python.org/)
 [![Android](https://img.shields.io/badge/Android-Native-3ddc84?style=flat-square&logo=android)](https://android.com/)
@@ -14,47 +12,92 @@
 
 </div>
 
----
+## Overview
 
-## فارسی
+TSB is a local-first diagnostic toolkit with two complementary components:
 
-**TSB (Termux-Shizuku-Bridge)** مجموعه‌ای متن‌باز برای بررسی محلی محیط Termux و ارتباط آن با Shizuku از طریق ابزار رسمی rish است.
+- **TSB CLI:** Python diagnostics for Termux, the official rish helper, its companion DEX, and a small fixed set of read-only remote probes.
+- **TSB Mobile:** A native Android app built with Kotlin and Jetpack Compose. It checks Termux/Shizuku app presence and Shizuku Binder reachability, shows device details, provides setup guidance, and copies a local report.
 
-### اجزای پروژه
-- **TSB CLI:** ابزار پایتونی برای بررسی Termux، rish، فایل DEX همراه و probeهای ثابت و فقط‌خواندنی.
-- **TSB Mobile:** اپلیکیشن بومی اندروید با Kotlin و Jetpack Compose؛ نمایش وضعیت نصب Termux و Shizuku، دسترسی Binder، اطلاعات دستگاه، راهنمای راه‌اندازی و گزارش محلی.
-- **مستندات دو‌زبانه:** راهنماهای فارسی و انگلیسی.
+The mobile app does **not** currently verify rish, the companion DEX, remote UID, or remote command execution. Use the CLI for those checks.
 
-اپ موبایل در نسخهٔ فعلی وجود rish و اجرای فرمان از راه دور را تأیید نمی‌کند؛ این موارد همچنان از طریق TSB CLI بررسی می‌شوند.
+## Features
 
-## English
+### CLI
+- Termux environment and version detection
+- rish and companion DEX discovery
+- Fixed, allowlisted, read-only remote probes
+- Remote UID fingerprinting without assuming root
+- Sanitized text and JSON reports
+- Local-only operation; no telemetry or automatic uploads
 
-**TSB (Termux-Shizuku-Bridge)** is an open-source, privacy-first toolkit for inspecting the local Termux environment and its Shizuku connection through the official rish helper.
+### Android app
+- Localized in-app interface with a saved language preference
+- Termux and Shizuku package detection
+- Shizuku Binder reachability via the official Shizuku API/provider
+- Android version, API level, manufacturer, and device model
+- Quick setup checklist and app launch shortcuts
+- Clipboard report with explicit scope limitations
+- No privileged Shizuku permission request, shell execution, network permission, or telemetry
 
-### Project components
-- **TSB CLI:** Python diagnostics for Termux, rish, its companion DEX, and fixed read-only probes.
-- **TSB Mobile:** A native Kotlin and Jetpack Compose Android companion. It displays Termux/Shizuku installation status, Shizuku Binder reachability, device details, setup guidance, and a local diagnostic report.
-- **Bilingual documentation:** English and Persian guides.
+## CLI installation
 
-The current mobile MVP does not verify rish or remote command execution; use TSB CLI for those checks.
+Requirements: Android with Termux, Python 3.10+, Shizuku running, Termux authorized in Shizuku, and the official rish helper plus rish_shizuku.dex.
 
-## شروع سریع / Quick links
+~~~bash
+pkg update && pkg upgrade
+pkg install python git
+git clone https://github.com/M34nX/Termux-Shizuku-Bridge.git
+cd Termux-Shizuku-Bridge
+python -m pip install .
+~~~
 
-- [English guide](README.en.md)
-- [راهنمای فارسی](README.fa.md)
-- [Android app / اپ اندروید](android/README.md)
-- [Android app فارسی](android/README.fa.md)
-- [Documentation / مستندات](docs/)
-- [Security / امنیت](docs/SECURITY.md)
-- [Compatibility / سازگاری](docs/COMPATIBILITY.md)
-- [GitHub Actions](../../actions)
+Run:
 
-## Project status / وضعیت پروژه
+~~~bash
+tsb doctor
+tsb status
+tsb report
+tsb report --json
+tsb report --output tsb-report.txt
+tsb version
+~~~
 
-TSB CLI and TSB Mobile are at version 0.2.1. The Android app remains an early beta; CI verifies builds, but physical-device testing is still required. The mobile app is read-only and makes no network requests or telemetry uploads.
+For a source checkout without installation:
 
-TSB CLI و TSB Mobile در نسخهٔ ۰٫۲٫۱ هستند. اپ اندروید همچنان بتاست؛ CI ساخت را بررسی می‌کند، اما آزمایش روی دستگاه واقعی لازم است. اپ فعلی فقط وضعیت‌ها را می‌خواند و داده‌ای به سرور ارسال نمی‌کند.
+~~~bash
+PYTHONPATH=src python -m tsb doctor
+~~~
+
+## Android app
+
+See the [Android build guide](android/README.md).
+
+- Minimum Android API: **24**.
+- Build environment: JDK 17, Android SDK 35, Gradle 8.9.
+- Build command from the android/ directory: `gradle :app:assembleDebug`.
+- CI publishes a debug APK artifact and a GitHub beta release only after the Android build succeeds on the release branch.
+
+A debug APK is not a Play Store release and is not production-signed. Review the source and install only builds you trust.
+
+## Privacy and safety
+
+- The CLI runs only fixed commands from an internal allowlist; user input is never interpolated into a shell command.
+- The app reads package visibility and Binder availability only; it does not request privileged Shizuku access.
+- Reports are copied locally and are not uploaded.
+- No telemetry, arbitrary shell execution, permission granting, or Android settings modification.
+
+## Documentation
+
+- [Architecture](docs/ARCHITECTURE.md)
+- [Security model](docs/SECURITY.md)
+- [Troubleshooting](docs/TROUBLESHOOTING.md)
+- [Compatibility](docs/COMPATIBILITY.md)
+
+## Project status
+
+TSB CLI and TSB Mobile are at version 0.2.1. Python CI and Android build CI run separately. The Android APK remains a debug build, not a production-signed release. Physical-device validation is still required; Binder reachability is not proof that the complete rish bridge works.
 
 ## License
 
-MIT — see [LICENSE](LICENSE).
+MIT. See [LICENSE](LICENSE).
