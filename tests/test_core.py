@@ -65,6 +65,22 @@ class CoreTests(unittest.TestCase):
         self.assertEqual(result["probes"]["manufacturer"]["value"],
                          "Read failed near [path]")
 
+    def test_report_redacts_macos_temporary_paths(self):
+        data = self.sample()
+        data["notes"] = [
+            "Temporary file: /private/var/folders/ab/cd/T/diagnostic.log",
+            "Cache file: /var/folders/xy/zz/C/com.example/cache.db",
+        ]
+
+        result = sanitize_report(data)
+
+        self.assertNotIn("/private/var/folders", str(result))
+        self.assertNotIn("/var/folders", str(result))
+        self.assertEqual(result["notes"], [
+            "Temporary file: [path]",
+            "Cache file: [path]",
+        ])
+
     def test_include_paths_is_explicit_and_preserves_paths(self):
         data = self.sample()
         data["notes"] = ["Local file: /storage/emulated/0/Download/report.txt"]
