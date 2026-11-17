@@ -15,8 +15,8 @@ _PATH_PATTERNS = tuple(
         r"/sdcard(?:/[^\s:,'\"<>)]*)?",
         r"/home/[^/\s:,'\"<>]+(?:/[^\s:,'\"<>)]*)?",
         r"/Users/[^/\s:,'\"<>]+(?:/[^\s:,'\"<>)]*)?",
-        r"/private/var/[^\\s:,'\"<>)]*",
-        r"/var/folders/[^\\s:,'\"<>)]*",
+        r"/private/var/[^\s:,\'\"<>)]*",
+        r"/var/folders/[^\s:,\'\"<>)]*",
     )
 )
 
