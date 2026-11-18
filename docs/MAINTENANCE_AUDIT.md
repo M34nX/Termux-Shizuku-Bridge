@@ -24,4 +24,4 @@ Repository tree, CLI modules, Python packaging and tests, Python and Android CI 
 - Publish a sanitized example report and verify that every new field passes through the privacy sanitizer.
 
 ## Status
-This is a source-based maintenance review. The compatibility-matrix wording was corrected in this PR. CI must validate the updated branch; no physical Android device test was performed as part of this review.
+This is a source-based maintenance review. The compatibility-matrix wording was corrected in this PR, and PR CI run [#44424022138](https://github.com/M34nX/Termux-Shizuku-Bridge/actions/runs/44424022138) passed the Python 3.10–3.14 matrix. The Android build was not rerun because this PR changes only documentation and Python tests; the latest recorded main-branch Android build (#34) succeeded. No physical Android device test was performed as part of this review.
