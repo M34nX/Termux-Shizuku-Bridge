@@ -12,7 +12,7 @@ This page distinguishes upstream compatibility information from TSB's own test s
 | rish | Official helper exported through Shizuku's terminal-app integration |
 | Companion | rish_shizuku.dex exported for the terminal app |
 
-The Python CI matrix covers Python 3.10–3.13. Check GitHub Actions for the result of each commit.
+The Python CI matrix covers Python 3.10–3.14. Check GitHub Actions for the result of each commit.
 
 ## Native Android app
 

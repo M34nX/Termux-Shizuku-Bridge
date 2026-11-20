@@ -1,10 +1,13 @@
+import io
 import os
 import tempfile
 import unittest
+from contextlib import redirect_stderr, redirect_stdout
 from pathlib import Path
 from unittest.mock import patch
 
 from tsb.constants import PROBES, VERSION
+from tsb.cli import main as cli_main
 from tsb.privacy import sanitize_report
 from tsb.report import render_json, render_text
 from tsb.runner import find_rish_dex, run_fixed_probe
@@ -113,6 +116,45 @@ class CoreTests(unittest.TestCase):
         self.assertFalse(result["ok"])
         self.assertIn("Blocked", result["value"])
         run.assert_not_called()
+
+    def test_cli_version_does_not_collect_diagnostics(self):
+        output = io.StringIO()
+        with patch("tsb.cli.collect_diagnostics") as collect:
+            with redirect_stdout(output):
+                self.assertEqual(cli_main(["version"]), 0)
+        collect.assert_not_called()
+        self.assertEqual(output.getvalue().strip(), VERSION)
+
+    def test_cli_doctor_exit_code_matches_readiness(self):
+        base = {
+            "version": VERSION,
+            "termux_detected": False,
+            "termux_version": "not reported",
+            "python_version": "3.x",
+            "rish_found": False,
+            "dex_found": False,
+            "probes": {},
+            "notes": [],
+        }
+        for ready, expected_code, expected_status in (
+            (False, 1, "NEEDS ATTENTION"),
+            (True, 0, "READY"),
+        ):
+            output = io.StringIO()
+            with patch("tsb.cli.collect_diagnostics", return_value={**base, "ready": ready}):
+                with redirect_stdout(output):
+                    self.assertEqual(cli_main(["doctor"]), expected_code)
+            self.assertIn(expected_status, output.getvalue())
+
+    def test_cli_report_write_failure_is_reported_without_traceback(self):
+        error = PermissionError(13, "Permission denied", "/restricted/report.txt")
+        stderr = io.StringIO()
+        with patch("tsb.cli.collect_diagnostics", return_value=self.sample()):
+            with patch("pathlib.Path.write_text", side_effect=error):
+                with redirect_stderr(stderr):
+                    result = cli_main(["report", "--output", "/restricted/report.txt"])
+        self.assertEqual(result, 2)
+        self.assertIn("Could not write report: Permission denied", stderr.getvalue())
 
     def test_version(self):
         self.assertRegex(VERSION, r"^[0-9]+[.][0-9]+[.][0-9]+$")
