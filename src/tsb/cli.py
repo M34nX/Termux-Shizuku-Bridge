@@ -2,6 +2,7 @@
 from __future__ import annotations
 import argparse
 import json
+import sys
 from pathlib import Path
 from . import __version__
 from .checks import collect_diagnostics
@@ -32,7 +33,12 @@ def main(argv: list[str] | None = None) -> int:
         data = sanitize_report(data, include_paths=args.include_paths)
         output = render_json(data) if args.json else render_text(data)
         if args.output:
-            args.output.write_text(output + "\n", encoding="utf-8")
+            try:
+                args.output.write_text(output + "\n", encoding="utf-8")
+            except OSError as exc:
+                reason = exc.strerror or exc.__class__.__name__
+                print(f"Could not write report: {reason}", file=sys.stderr)
+                return 2
             print(f"Report saved to {args.output}")
         else:
             print(output)
